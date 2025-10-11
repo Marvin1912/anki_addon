@@ -17,6 +17,7 @@ ANKI_FIELD_DESCRIPTION = "Description"
 
 # UI Configuration
 WINDOW_TITLE_CHANGED_CARDS = "Changed Cards"
+WINDOW_TITLE_ERROR = "Synchronization Error"
 WINDOW_MINIMUM_SIZE = (400, 300)
 MENU_ACTION_TEXT = "Import cards from server"
 

@@ -13,7 +13,7 @@ from aqt.qt import QAction
 from .addon_config import MENU_ACTION_TEXT
 from .models import CardResult
 from .synchronizer import FlashcardSynchronizer
-from .ui_components import show_changed_cards_dialog
+from .ui_components import show_changed_cards_dialog, show_error_dialog
 from .vocabulary_api import VocabularyAPIError
 
 # Configure logging for the addon
@@ -66,7 +66,16 @@ def on_synchronization_failure(error) -> None:
         error: Exception that occurred during synchronization
     """
     logger.error(f"Synchronization operation failed: {error}")
-    # TODO: Show user-friendly error message dialog
+
+    # Show user-friendly error message dialog
+    error_message = str(error)
+    if not error_message:
+        error_message = "An unknown error occurred during synchronization."
+
+    try:
+        show_error_dialog(error_message)
+    except Exception as dialog_error:
+        logger.error(f"Failed to show error dialog: {dialog_error}")
 
 
 def create_synchronization_operation() -> None:
