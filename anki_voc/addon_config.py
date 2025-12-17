@@ -3,7 +3,7 @@ Configuration constants for Anki Vocabulary Addon.
 """
 
 # API Configuration
-API_BASE_URL = "http://192.168.178.29:9001"
+API_BASE_URL = "http://backend.home-lab.com"
 FLASHCARDS_ENDPOINT = f"{API_BASE_URL}/vocabulary/flashcards"
 
 # HTTP Headers
