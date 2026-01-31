@@ -48,8 +48,7 @@ class AnkiCardManager:
         """
         note[self.config.anki_field_front] = flashcard.front
         note[self.config.anki_field_back] = flashcard.back
-        if self.config.anki_field_description in note:
-            note[self.config.anki_field_description] = flashcard.description
+        note[self.config.anki_field_description] = flashcard.description
 
     def add_card_to_deck(self, note: Note, deck_id: DeckId) -> None:
         """
