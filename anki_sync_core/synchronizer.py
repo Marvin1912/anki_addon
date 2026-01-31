@@ -1,5 +1,8 @@
 """
 Flashcard synchronization coordinator.
+
+This module provides the main synchronization logic, coordinating between
+Anki operations and API communication.
 """
 
 import logging
@@ -7,9 +10,10 @@ from typing import List
 
 from anki.collection import Collection, OpChanges
 
-from .anki_operations import AnkiCardManager
+from .anki_manager import AnkiCardManager
+from .api_client import VocabularyAPIClient, VocabularyAPIError
+from .config import SyncConfig
 from .models import FlashCard, CardResult
-from .vocabulary_api import VocabularyAPIClient, VocabularyAPIError
 
 
 class FlashcardSynchronizer:
@@ -18,23 +22,34 @@ class FlashcardSynchronizer:
 
     Handles the main synchronization logic, coordinating between
     Anki operations and API communication.
+
+    This class has no GUI dependencies and can be used in both
+    GUI addons and headless environments.
     """
 
-    def __init__(self, collection: Collection):
+    def __init__(self, collection: Collection, config: SyncConfig = None):
         """
         Initialize the synchronizer.
 
         Args:
             collection: Anki collection instance
+            config: SyncConfig instance. If None, uses default configuration.
         """
         self.collection = collection
-        self.anki_manager = AnkiCardManager(collection)
-        self.api_client = VocabularyAPIClient()
+        self.config = config or SyncConfig()
+        self.anki_manager = AnkiCardManager(collection, self.config)
+        self.api_client = VocabularyAPIClient(self.config)
         self.logger = logging.getLogger(__name__)
 
     def synchronize_updated_cards(self) -> CardResult:
         """
         Synchronize updated cards from the API with Anki.
+
+        This method:
+        1. Fetches updated cards from the API
+        2. For each card, creates or updates it in Anki
+        3. Marks cards as synchronized on the API
+        4. Returns a result with information about changed cards
 
         Returns:
             CardResult containing information about changed cards
@@ -51,7 +66,11 @@ class FlashcardSynchronizer:
                     deck_id = self.anki_manager.get_or_create_deck_id(flashcard.deck)
 
                     # Check if card already exists in Anki
-                    existing_note_id = self.anki_manager.find_note_by_guid(flashcard.ankiId) if flashcard.ankiId else None
+                    existing_note_id = (
+                        self.anki_manager.find_note_by_guid(flashcard.ankiId)
+                        if flashcard.ankiId
+                        else None
+                    )
 
                     if flashcard.ankiId is None or existing_note_id is None:
                         # Create new card

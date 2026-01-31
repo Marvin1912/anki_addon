@@ -1,34 +1,49 @@
 """
 HTTP client for Vocabulary API communication.
+
+This module provides a client for communicating with the Vocabulary API
+server, handling all HTTP requests for flashcard synchronization.
 """
 
 import json
 import logging
 from dataclasses import asdict
-from typing import List, Optional
+from typing import List
 
 import requests
-from requests import Response, RequestException
+from requests import RequestException
 
-from .addon_config import FLASHCARDS_ENDPOINT, JSON_HEADERS
+from .config import SyncConfig
 from .models import FlashCard
+
+
+class VocabularyAPIError(Exception):
+    """
+    Exception raised for errors in the Vocabulary API communication.
+    """
+    pass
 
 
 class VocabularyAPIClient:
     """
     Client for communicating with the Vocabulary API server.
 
-    Handles HTTP requests for flashcard synchronization.
+    Handles HTTP requests for flashcard synchronization, including
+    fetching updated cards, creating new cards, and updating existing cards.
+
+    This class has no GUI dependencies and can be used in both
+    GUI addons and headless environments.
     """
 
-    def __init__(self, base_url: str = FLASHCARDS_ENDPOINT):
+    def __init__(self, config: SyncConfig = None):
         """
         Initialize the API client.
 
         Args:
-            base_url: Base URL for the vocabulary API
+            config: SyncConfig instance. If None, uses default configuration.
         """
-        self.base_url = base_url
+        self.config = config or SyncConfig()
+        self.base_url = self.config.get_flashcards_endpoint()
         self.logger = logging.getLogger(__name__)
 
     def fetch_updated_flashcards(self) -> List[FlashCard]:
@@ -44,7 +59,7 @@ class VocabularyAPIClient:
         try:
             response = requests.get(
                 url=f"{self.base_url}?updated=true",
-                headers=JSON_HEADERS
+                headers=self.config.get_json_headers()
             )
             response.raise_for_status()
 
@@ -67,7 +82,7 @@ class VocabularyAPIClient:
             flashcard: The flashcard to update
 
         Returns:
-            True if update was successful, False otherwise
+            True if update was successful
 
         Raises:
             VocabularyAPIError: If the API request fails
@@ -76,7 +91,7 @@ class VocabularyAPIClient:
             response = requests.put(
                 url=self.base_url,
                 data=json.dumps(asdict(flashcard)),
-                headers=JSON_HEADERS
+                headers=self.config.get_json_headers()
             )
             response.raise_for_status()
 
@@ -98,7 +113,7 @@ class VocabularyAPIClient:
             flashcard: The flashcard to create
 
         Returns:
-            True if creation was successful, False otherwise
+            True if creation was successful
 
         Raises:
             VocabularyAPIError: If the API request fails
@@ -107,7 +122,7 @@ class VocabularyAPIClient:
             response = requests.put(
                 url=self.base_url,
                 data=json.dumps(asdict(flashcard)),
-                headers=JSON_HEADERS
+                headers=self.config.get_json_headers()
             )
             response.raise_for_status()
 
@@ -120,10 +135,3 @@ class VocabularyAPIClient:
         except RequestException as e:
             self.logger.error(f"Failed to create flashcard {flashcard.id}: {e}")
             raise VocabularyAPIError(f"Failed to create flashcard: {e}")
-
-
-class VocabularyAPIError(Exception):
-    """
-    Exception raised for errors in the Vocabulary API communication.
-    """
-    pass
