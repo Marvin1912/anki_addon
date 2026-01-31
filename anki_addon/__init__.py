@@ -2,7 +2,8 @@
 Anki Vocabulary Addon - Synchronize flashcards with external API.
 
 This addon provides functionality to import and synchronize flashcards
-from a remote vocabulary API server with Anki.
+from a remote vocabulary API server with Anki. It uses the shared
+anki_sync_core library for all business logic.
 """
 
 import logging
@@ -10,11 +11,9 @@ from aqt import mw
 from aqt.operations import CollectionOp
 from aqt.qt import QAction
 
-from .addon_config import MENU_ACTION_TEXT
-from .models import CardResult
-from .synchronizer import FlashcardSynchronizer
+from anki_sync_core import FlashcardSynchronizer, VocabularyAPIError, default_config
+from anki_sync_core.models import CardResult
 from .ui_components import show_changed_cards_dialog, show_error_dialog
-from .vocabulary_api import VocabularyAPIError
 
 # Configure logging for the addon
 logging.basicConfig(level=logging.INFO)
@@ -35,7 +34,7 @@ def process_synchronization(collection) -> CardResult:
         VocabularyAPIError: If API communication fails
     """
     try:
-        synchronizer = FlashcardSynchronizer(collection)
+        synchronizer = FlashcardSynchronizer(collection, default_config)
         result = synchronizer.synchronize_updated_cards()
         logger.info(f"Synchronization completed. {len(result.changed_cards)} cards processed.")
         return result
@@ -53,7 +52,7 @@ def on_synchronization_success(card_result: CardResult) -> None:
         card_result: Result containing information about synchronized cards
     """
     try:
-        show_changed_cards_dialog(card_result)
+        show_changed_cards_dialog(card_result, default_config)
     except Exception as e:
         logger.error(f"Failed to show results dialog: {e}")
 
@@ -73,7 +72,7 @@ def on_synchronization_failure(error) -> None:
         error_message = "An unknown error occurred during synchronization."
 
     try:
-        show_error_dialog(error_message)
+        show_error_dialog(error_message, default_config)
     except Exception as dialog_error:
         logger.error(f"Failed to show error dialog: {dialog_error}")
 
@@ -94,7 +93,7 @@ def create_synchronization_operation() -> None:
 def setup_addon() -> None:
     """Set up the addon by adding menu action."""
     try:
-        action = QAction(MENU_ACTION_TEXT, mw)
+        action = QAction(default_config.menu_action_text, mw)
         action.triggered.connect(create_synchronization_operation)
         mw.form.menuTools.addAction(action)
         logger.info("Anki Vocabulary Addon successfully initialized")

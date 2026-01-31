@@ -1,5 +1,8 @@
 """
 Anki collection operations for flashcard management.
+
+This module provides a manager for Anki collection operations,
+handling creation, updating, and deck assignment of flashcards.
 """
 
 import logging
@@ -10,14 +13,7 @@ from anki.collection import Collection, OpChangesWithCount
 from anki.decks import DeckId
 from anki.notes import Note
 
-from .addon_config import (
-    DEFAULT_MODEL_NAME,
-    ANKI_FIELD_FRONT,
-    ANKI_FIELD_BACK,
-    ANKI_FIELD_DESCRIPTION,
-    LOG_NO_CARDS_CREATED,
-    LOG_CARD_NOT_FOUND
-)
+from .config import SyncConfig
 from .models import FlashCard
 
 
@@ -26,16 +22,20 @@ class AnkiCardManager:
     Manages Anki collection operations for flashcards.
 
     Handles creation, updating, and deck assignment of flashcards.
+    This class has no GUI dependencies and can be used in both
+    GUI addons and headless environments.
     """
 
-    def __init__(self, collection: Collection):
+    def __init__(self, collection: Collection, config: SyncConfig = None):
         """
         Initialize the card manager with an Anki collection.
 
         Args:
             collection: Anki collection instance
+            config: SyncConfig instance. If None, uses default configuration.
         """
         self.collection = collection
+        self.config = config or SyncConfig()
         self.logger = logging.getLogger(__name__)
 
     def set_note_fields(self, note: Note, flashcard: FlashCard) -> None:
@@ -46,9 +46,9 @@ class AnkiCardManager:
             note: Anki note to set fields on
             flashcard: FlashCard containing field data
         """
-        note[ANKI_FIELD_FRONT] = flashcard.front
-        note[ANKI_FIELD_BACK] = flashcard.back
-        note[ANKI_FIELD_DESCRIPTION] = flashcard.description
+        note[self.config.anki_field_front] = flashcard.front
+        note[self.config.anki_field_back] = flashcard.back
+        note[self.config.anki_field_description] = flashcard.description
 
     def add_card_to_deck(self, note: Note, deck_id: DeckId) -> None:
         """
@@ -65,18 +65,19 @@ class AnkiCardManager:
         self.logger.info(f"Added {result.count} card(s) to deck {deck_name}")
 
     def create_new_card(self, flashcard: FlashCard, deck_id: DeckId,
-                       model_name: str = DEFAULT_MODEL_NAME) -> Optional[str]:
+                       model_name: str = None) -> Optional[str]:
         """
         Create a new Anki card from a flashcard.
 
         Args:
             flashcard: FlashCard data to create from
             deck_id: Target deck ID
-            model_name: Anki model name to use (default: "Einfach")
+            model_name: Anki model name to use (default from config)
 
         Returns:
             Note GUID if successful, None otherwise
         """
+        model_name = model_name or self.config.default_model_name
         model = self.collection.models.by_name(model_name)
         if model is None:
             self.logger.error(f"Model '{model_name}' not found")
@@ -87,7 +88,7 @@ class AnkiCardManager:
 
         added_cards_count = self.collection.addNote(note)
         if added_cards_count == 0:
-            self.logger.warning(LOG_NO_CARDS_CREATED)
+            self.logger.warning(self.config.log_no_cards_created)
             return None
 
         self.logger.info(
@@ -118,7 +119,9 @@ class AnkiCardManager:
         )
 
         if not note_id:
-            self.logger.warning(LOG_CARD_NOT_FOUND.format(guid=flashcard.ankiId))
+            self.logger.warning(
+                self.config.log_card_not_found.format(guid=flashcard.ankiId)
+            )
             return False
 
         note: Note = self.collection.get_note(note_id)

@@ -1,72 +1,97 @@
-# Anki Vocabulary Addon
+# Anki Vocabulary Sync
 
-A powerful Anki addon that synchronizes flashcards with an external Vocabulary API server, enabling seamless integration between your local Anki collection and remote vocabulary databases.
+A powerful, modular system for synchronizing flashcards between Anki and external Vocabulary API servers. This project provides both a GUI addon for Anki Desktop and a headless Docker container for automated synchronization.
 
 ## Features
 
+- **Shared Core Library**: Business logic separated from UI, enabling multiple frontends
+- **GUI Addon**: Full-featured Anki addon with menu integration and result dialogs
+- **Headless Docker Sync**: Automated, scheduled synchronization with AnkiWeb sync
 - **Bidirectional Synchronization**: Import and sync flashcards from external vocabulary API servers
 - **Automatic Deck Management**: Automatically creates decks if they don't exist
 - **Smart Card Matching**: Uses GUIDs to prevent duplicate cards and handle updates
 - **Background Processing**: Synchronization runs in the background without blocking Anki
 - **Error Handling**: Robust error handling with detailed logging
-- **User-Friendly Interface**: Simple menu integration with results dialog
+- **Configuration Management**: Unified configuration supporting both file-based and environment-based settings
+
+## Architecture
+
+```
+anki_addon/
+├── anki_sync_core/              # Shared core library (no GUI dependencies)
+│   ├── config.py                # Unified configuration management
+│   ├── models.py                # Data models (FlashCard, CardResult)
+│   ├── api_client.py            # Vocabulary API client
+│   ├── anki_manager.py          # Anki collection operations
+│   └── synchronizer.py          # Core synchronization logic
+│
+├── anki_addon/                  # Anki GUI addon (uses core library)
+│   ├── __init__.py              # Addon initialization and menu setup
+│   └── ui_components.py         # GUI dialogs and components
+│
+├── headless_sync/               # Headless Docker sync (uses core library)
+│   ├── sync_script.py           # Headless synchronization script
+│   ├── Dockerfile
+│   ├── docker-compose.yml
+│   └── .env.example
+│
+└── tests/                       # Shared tests for core library
+```
+
+## Components
+
+### 1. Anki Sync Core Library (`anki_sync_core/`)
+
+The core library contains all business logic without any GUI dependencies. It can be used independently in both GUI and headless environments.
+
+**Key Classes:**
+- `SyncConfig`: Unified configuration with support for environment variables
+- `FlashCard`: Data model for flashcards
+- `CardResult`: Result model for sync operations
+- `VocabularyAPIClient`: HTTP client for API communication
+- `AnkiCardManager`: Manager for Anki collection operations
+- `FlashcardSynchronizer`: Main synchronization coordinator
+
+### 2. Anki GUI Addon (`anki_addon/`)
+
+Provides GUI integration for Anki Desktop with menu integration and result dialogs.
+
+**Installation:**
+1. Copy the `anki_addon/` directory to your Anki addons folder
+2. Restart Anki
+3. Access via `Tools` > `Import cards from server`
+
+### 3. Headless Docker Sync (`headless_sync/`)
+
+Provides automated, scheduled synchronization without GUI, with automatic AnkiWeb sync.
+
+**Quick Start:**
+```bash
+cd headless_sync
+cp .env.example .env
+# Edit .env with your credentials
+docker-compose up -d
+```
 
 ## Requirements
 
+### For GUI Addon
 - Anki 2.1+ (desktop version)
 - Python 3.7+
-- Access to a Vocabulary API server (default: `http://localhost:9001`)
+- Access to a Vocabulary API server
 
-## Installation
-
-1. Download the addon files
-2. In Anki, go to `Tools` > `Add-ons` > `Get Add-ons...`
-3. Copy the addon code to the clipboard
-4. Paste it into the "Code" field and click "OK"
-5. Restart Anki
+### For Headless Sync
+- Docker and Docker Compose
+- AnkiWeb account
+- Access to a Vocabulary API server
 
 ## Configuration
 
-The addon can be configured by modifying the `addon_config.py` file:
-
 ### API Settings
-- **API Base URL**: Default is `http://localhost:9001`
-- **Flashcards Endpoint**: `http://localhost:9001/vocabulary/flashcards`
-
-### Anki Field Mapping
-- **Default Model**: "Einfach" (Basic model)
-- **Front Field**: "Vorderseite" (German for compatibility)
-- **Back Field**: "Rückseite" (German for compatibility)
-- **Description Field**: "Description"
-
-## Usage
-
-### Basic Synchronization
-
-1. Open Anki
-2. Go to `Tools` menu
-3. Click on "Import cards from server"
-4. The addon will:
-   - Connect to the configured Vocabulary API
-   - Fetch updated flashcards
-   - Create new cards or update existing ones
-   - Show a results dialog with processed cards
-
-### What Happens During Sync
-
-1. **Fetch Updated Cards**: The addon requests flashcards marked as updated from the API
-2. **Process Each Card**:
-   - Creates deck if it doesn't exist
-   - Checks if card already exists using GUID
-   - Creates new cards or updates existing ones
-   - Marks cards as synchronized on the server
-3. **Display Results**: Shows how many cards were processed
-
-## API Integration
 
 The addon expects a RESTful API with the following endpoints:
 
-### GET /vocabulary/flashcards?updated=true
+#### GET /vocabulary/flashcards?updated=true
 Returns a list of updated flashcards in JSON format:
 
 ```json
@@ -83,8 +108,47 @@ Returns a list of updated flashcards in JSON format:
 ]
 ```
 
-### PUT /vocabulary/flashcards
+#### PUT /vocabulary/flashcards
 Creates or updates flashcards. Send the same JSON format as above.
+
+### Configuration Options
+
+Configuration can be set via:
+1. **Code**: Modify `anki_sync_core/config.py` defaults
+2. **Environment Variables**: For headless sync (see `.env.example`)
+
+**Key Configuration Options:**
+- `API_BASE_URL`: API endpoint (default: `http://backend.home-lab.com`)
+- `DEFAULT_MODEL_NAME`: Anki model name (default: "Einfach")
+- `ANKI_FIELD_FRONT`: Front field name (default: "Vorderseite")
+- `ANKI_FIELD_BACK`: Back field name (default: "Rückseite")
+- `ANKI_FIELD_DESCRIPTION`: Description field name (default: "Description")
+
+## Usage
+
+### GUI Addon Usage
+
+1. Open Anki
+2. Go to `Tools` menu
+3. Click on "Import cards from server"
+4. The addon will:
+   - Connect to the configured Vocabulary API
+   - Fetch updated flashcards
+   - Create new cards or update existing ones
+   - Show a results dialog with processed cards
+
+### Headless Sync Usage
+
+1. Copy your Anki collection file to `headless_sync/anki-data/`
+2. Configure environment variables in `.env`
+3. Run with Docker Compose:
+   ```bash
+   docker-compose up -d
+   ```
+4. View logs:
+   ```bash
+   docker-compose logs -f
+   ```
 
 ## Development
 
@@ -92,14 +156,26 @@ Creates or updates flashcards. Send the same JSON format as above.
 
 ```
 anki_addon/
-├── anki_voc/
-│   ├── __init__.py          # Main addon initialization
-│   ├── addon_config.py      # Configuration constants
-│   ├── anki_operations.py   # Anki database operations
-│   ├── models.py            # Data models (FlashCard, CardResult)
-│   ├── synchronizer.py      # Main synchronization logic
-│   ├── ui_components.py     # User interface components
-│   └── vocabulary_api.py    # HTTP client for API communication
+├── anki_sync_core/              # Shared core library
+│   ├── __init__.py
+│   ├── config.py
+│   ├── models.py
+│   ├── api_client.py
+│   ├── anki_manager.py
+│   └── synchronizer.py
+│
+├── anki_addon/                  # GUI addon
+│   ├── __init__.py
+│   └── ui_components.py
+│
+├── headless_sync/               # Headless sync
+│   ├── sync_script.py
+│   ├── Dockerfile
+│   ├── docker-compose.yml
+│   └── .env.example
+│
+├── tests/                       # Tests
+├── plans/                       # Planning documents
 └── README.md
 ```
 
@@ -110,13 +186,12 @@ anki_addon/
 - **AnkiCardManager**: Manages Anki database operations
 - **FlashCard Model**: Represents flashcard data structure
 
-### Error Handling
+### Testing
 
-The addon includes comprehensive error handling:
-- Network failures are logged and reported to users
-- Individual card failures don't stop the entire sync process
-- API errors are properly distinguished from other errors
-- Detailed logging for troubleshooting
+Run tests for the core library:
+```bash
+python -m pytest tests/
+```
 
 ## Troubleshooting
 
@@ -129,16 +204,15 @@ The addon includes comprehensive error handling:
 
 ### Logs
 
-Check Anki's debug console (`Tools` > `Debug Console`) for detailed logs:
-- Look for messages prefixed with `anki_voc`
-- Errors include specific details about what went wrong
+- **GUI Addon**: Check Anki's debug console (`Tools` > `Debug Console`)
+- **Headless Sync**: Check Docker logs (`docker-compose logs -f`)
 
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Test thoroughly with Anki
+4. Test thoroughly with both GUI and headless modes
 5. Submit a pull request
 
 ## License
@@ -154,4 +228,4 @@ For issues and questions:
 
 ---
 
-**Note**: This addon requires a running Vocabulary API server to function properly. Make sure your server is accessible at the configured URL before attempting synchronization.
+**Note**: This project requires a running Vocabulary API server to function properly. Make sure your server is accessible at the configured URL before attempting synchronization.

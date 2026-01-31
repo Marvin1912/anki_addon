@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  anki-vocab-sync:
+    build:
+      context: ..
+      dockerfile: headless_sync/Dockerfile
+    container_name: anki-vocabulary-sync
+    environment:
+      # AnkiWeb credentials (required)
+      - ANKI_USERNAME=${ANKI_USERNAME}
+      - ANKI_PASSWORD=${ANKI_PASSWORD}
+
+      # Collection path (Linux default)
+      # This should point to your Anki collection file
+      - ANKI_COLLECTION_PATH=/data/collection.anki2
+
+      # Optional: Custom API endpoint
+      # Defaults to http://backend.home-lab.com if not set
+      - API_BASE_URL=${API_BASE_URL:-http://backend.home-lab.com}
+
+      # Optional: Custom schedule (cron format)
+      # Default: Every 6 hours (at minute 0 of every 6th hour)
+      # Format: minute hour day month day-of-week
+      # Examples:
+      #   - "0 */6 * * *" = Every 6 hours
+      #   - "0 */1 * * *" = Every hour
+      #   - "0 0 * * *" = Daily at midnight
+      #   - "*/15 * * * *" = Every 15 minutes
+      - SCHEDULE=${SCHEDULE:-0 */6 * * *}
+
+    volumes:
+      # Mount Anki data directory
+      # This should contain your collection.anki2 file
+      - ./anki-data:/data
+
+      # Mount logs for monitoring
+      - ./logs:/var/log
+    restart: unless-stopped
+
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

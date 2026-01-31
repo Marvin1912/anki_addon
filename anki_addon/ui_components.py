@@ -1,5 +1,8 @@
 """
 UI components for Anki Vocabulary Addon.
+
+This module provides GUI components for displaying synchronization results
+and error messages to users.
 """
 
 import logging
@@ -8,12 +11,8 @@ from typing import List
 from aqt.qt import *
 from aqt import mw
 
-from .addon_config import (
-    WINDOW_TITLE_CHANGED_CARDS,
-    WINDOW_TITLE_ERROR,
-    WINDOW_MINIMUM_SIZE
-)
-from .models import CardResult, FlashCard
+from anki_sync_core.config import SyncConfig
+from anki_sync_core.models import CardResult, FlashCard
 
 
 class ChangedCardsDialog(QDialog):
@@ -21,16 +20,18 @@ class ChangedCardsDialog(QDialog):
     Dialog to display cards that have been changed during synchronization.
     """
 
-    def __init__(self, card_result: CardResult, parent=None):
+    def __init__(self, card_result: CardResult, config: SyncConfig = None, parent=None):
         """
         Initialize the dialog with card results.
 
         Args:
             card_result: Result containing changed cards
+            config: SyncConfig instance. If None, uses default configuration.
             parent: Parent widget (default: None)
         """
         super().__init__(parent or mw)
         self.card_result = card_result
+        self.config = config or SyncConfig()
         self.logger = logging.getLogger(__name__)
 
         self.setup_ui()
@@ -38,8 +39,8 @@ class ChangedCardsDialog(QDialog):
 
     def setup_ui(self) -> None:
         """Set up the dialog UI components."""
-        self.setWindowTitle(WINDOW_TITLE_CHANGED_CARDS)
-        self.setMinimumSize(*WINDOW_MINIMUM_SIZE)
+        self.setWindowTitle(self.config.window_title_changed_cards)
+        self.setMinimumSize(*self.config.window_minimum_size)
 
         layout = QVBoxLayout(self)
 
@@ -84,24 +85,26 @@ class ErrorDialog(QDialog):
     Dialog to display error messages to the user.
     """
 
-    def __init__(self, error_message: str, parent=None):
+    def __init__(self, error_message: str, config: SyncConfig = None, parent=None):
         """
         Initialize the error dialog.
 
         Args:
             error_message: Error message to display
+            config: SyncConfig instance. If None, uses default configuration.
             parent: Parent widget (default: None)
         """
         super().__init__(parent or mw)
         self.error_message = error_message
+        self.config = config or SyncConfig()
         self.logger = logging.getLogger(__name__)
 
         self.setup_ui()
 
     def setup_ui(self) -> None:
         """Set up the dialog UI components."""
-        self.setWindowTitle(WINDOW_TITLE_ERROR)
-        self.setMinimumSize(*WINDOW_MINIMUM_SIZE)
+        self.setWindowTitle(self.config.window_title_error)
+        self.setMinimumSize(*self.config.window_minimum_size)
 
         layout = QVBoxLayout(self)
 
@@ -133,23 +136,25 @@ class ErrorDialog(QDialog):
         self.setLayout(layout)
 
 
-def show_changed_cards_dialog(card_result: CardResult) -> None:
+def show_changed_cards_dialog(card_result: CardResult, config: SyncConfig = None) -> None:
     """
     Show the changed cards dialog.
 
     Args:
         card_result: Result containing changed cards to display
+        config: SyncConfig instance. If None, uses default configuration.
     """
-    dialog = ChangedCardsDialog(card_result, mw)
+    dialog = ChangedCardsDialog(card_result, config, mw)
     dialog.exec()
 
 
-def show_error_dialog(error_message: str) -> None:
+def show_error_dialog(error_message: str, config: SyncConfig = None) -> None:
     """
     Show an error dialog to the user.
 
     Args:
         error_message: Error message to display
+        config: SyncConfig instance. If None, uses default configuration.
     """
-    dialog = ErrorDialog(error_message, mw)
+    dialog = ErrorDialog(error_message, config, mw)
     dialog.exec()
