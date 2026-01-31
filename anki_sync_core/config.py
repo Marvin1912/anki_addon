@@ -26,8 +26,8 @@ class SyncConfig:
 
     # Anki Configuration
     default_model_name: str = "Basic"
-    anki_field_front: str = "Vorderseite"
-    anki_field_back: str = "Rückseite"
+    anki_field_front: str = "Front"
+    anki_field_back: str = "Back"
     anki_field_description: str = "Description"
 
     # AnkiWeb Configuration (for headless sync)
