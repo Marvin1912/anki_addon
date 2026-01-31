@@ -21,7 +21,7 @@ RUN chmod +x /app/sync_script.py /app/startup.sh
 RUN pip install --no-cache-dir anki requests
 
 # Setup cron schedule (every minute)
-RUN echo "* * * * * /usr/local/bin/python3 /app/sync_script.py >> /var/log/anki.log 2>&1" > /etc/cron.d/anki-scheduler
+RUN echo "* * * * * env ANKI_USERNAME=\$ANKI_USERNAME ANKI_PASSWORD=\$ANKI_PASSWORD API_BASE_URL=\$API_BASE_URL SCHEDULE=\$SCHEDULE /usr/local/bin/python3 /app/sync_script.py >> /var/log/anki.log 2>&1" > /etc/cron.d/anki-scheduler
 RUN chmod 0644 /etc/cron.d/anki-scheduler
 RUN crontab /etc/cron.d/anki-scheduler
 
