@@ -22,7 +22,7 @@ RUN pip install --no-cache-dir anki requests
 # Setup cron schedule (every minute)
 # Format: minute hour day month day-of-week
 # * * * * * means every minute
-RUN echo "* * * * * root python3 /app/sync_script.py >> /var/log/anki.log 2>&1" > /etc/cron.d/anki-scheduler
+RUN echo "* * * * * root /usr/local/bin/python3 /app/sync_script.py >> /var/log/anki.log 2>&1" > /etc/cron.d/anki-scheduler
 RUN chmod 0644 /etc/cron.d/anki-scheduler
 RUN crontab /etc/cron.d/anki-scheduler
 
