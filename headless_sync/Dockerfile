@@ -36,5 +36,5 @@ ENV ANKI_PASSWORD=""
 ENV API_BASE_URL=""
 ENV SCHEDULE="0 */6 * * *"
 
-# Run cron in foreground
-CMD ["cron", "-f"]
+# Run sync script at startup, then run cron in foreground
+CMD /bin/sh -c "/usr/local/bin/python3 /app/sync_script.py && cron -f"
