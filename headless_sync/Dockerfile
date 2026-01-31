@@ -14,6 +14,7 @@ COPY anki_sync_core /app/anki_sync_core
 
 # Copy headless script
 COPY headless_sync/sync_script.py /app/
+RUN chmod +x /app/sync_script.py
 
 # Install Anki and requests
 RUN pip install --no-cache-dir anki requests
@@ -21,7 +22,7 @@ RUN pip install --no-cache-dir anki requests
 # Setup cron schedule (every 6 hours by default)
 # Format: minute hour day month day-of-week
 # 0 */6 * * * means at minute 0 of every 6th hour
-RUN echo "0 */6 * * * root python /app/sync_script.py >> /var/log/anki.log 2>&1" > /etc/cron.d/anki-scheduler
+RUN echo "0 */6 * * * root python3 /app/sync_script.py >> /var/log/anki.log 2>&1" > /etc/cron.d/anki-scheduler
 RUN chmod 0644 /etc/cron.d/anki-scheduler
 RUN crontab /etc/cron.d/anki-scheduler
 
