@@ -58,6 +58,16 @@ def synchronize_and_sync(
         col = aopen(collection_path)
 
         try:
+            # Sync with AnkiWeb at start to get latest collection
+            logger.info("Syncing collection from AnkiWeb at start...")
+            auth = col.sync_login(
+                username=anki_username,
+                password=anki_password,
+                endpoint=None
+            )
+            output = col.sync_collection(auth=auth, sync_media=True)
+            logger.info(f"Initial AnkiWeb sync completed: {output}")
+
             # Run synchronization using core library
             logger.info("Starting flashcard synchronization...")
             synchronizer = FlashcardSynchronizer(col, config)
@@ -68,15 +78,15 @@ def synchronize_and_sync(
                 f"{len(result.changed_cards)} cards processed."
             )
 
-            # Sync with AnkiWeb
-            logger.info("Syncing with AnkiWeb...")
+            # Sync with AnkiWeb again after API sync
+            logger.info("Syncing with AnkiWeb after API sync...")
             auth = col.sync_login(
                 username=anki_username,
                 password=anki_password,
                 endpoint=None
             )
             output = col.sync_collection(auth=auth, sync_media=True)
-            logger.info(f"AnkiWeb sync completed: {output}")
+            logger.info(f"Final AnkiWeb sync completed: {output}")
 
             return True
 
@@ -96,7 +106,7 @@ def synchronize_and_sync(
 def main():
     """Main entry point for headless synchronization."""
     # Get configuration from environment variables
-    collection_path = os.getenv("ANKI_COLLECTION_PATH")
+    collection_path = "/data/collection.anki2"
     anki_username = os.getenv("ANKI_USERNAME")
     anki_password = os.getenv("ANKI_PASSWORD")
 
@@ -104,10 +114,10 @@ def main():
     config = SyncConfig.from_env()
 
     # Validate required configuration
-    if not all([collection_path, anki_username, anki_password]):
+    if not all([anki_username, anki_password]):
         logger.error(
             "Missing required environment variables. "
-            "Please set ANKI_COLLECTION_PATH, ANKI_USERNAME and ANKI_PASSWORD."
+            "Please set ANKI_USERNAME and ANKI_PASSWORD."
         )
         sys.exit(1)
 
