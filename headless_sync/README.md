@@ -36,9 +36,29 @@ This implementation uses the shared `anki_sync_core` library to synchronize flas
 
 ## Quick Start
 
-### 1. Copy Your Collection
+### 1. Find Your Collection Path
 
-First, copy your Anki collection file to the `anki-data` directory:
+First, find the path to your Anki collection file:
+
+**Option 1: Using Anki Desktop**
+1. Open Anki Desktop
+2. Go to `Tools` > `Preferences` > `Backup`
+3. Look for the "Collection folder" path
+4. The collection file is named `collection.anki2` in that folder
+
+**Option 2: Using Default Paths**
+
+| OS | Default Path |
+|-----|-------------|
+| Linux | `~/.local/share/Anki2/User 1/collection.anki2` |
+| macOS | `~/Library/Application Support/Anki2/User 1/collection.anki2` |
+| Windows | `%APPDATA%\Anki2\User 1\collection.anki2` |
+
+**Note**: Replace `User 1` with your actual Anki profile name if different.
+
+### 2. Copy Your Collection
+
+Copy your Anki collection file to the `anki-data` directory:
 
 ```bash
 # Linux
@@ -150,6 +170,14 @@ The collection path depends on your operating system:
 | Linux | `~/.local/share/Anki2/User 1/collection.anki2` |
 | macOS | `~/Library/Application Support/Anki2/User 1/collection.anki2` |
 | Windows | `%APPDATA%\Anki2\User 1\collection.anki2` |
+
+**Note**: Replace `User 1` with your actual Anki profile name if different.
+
+**Finding Your Collection Path**:
+1. Open Anki Desktop
+2. Go to `Tools` > `Preferences` > `Backup`
+3. Look for "Collection folder" path
+4. The collection file is named `collection.anki2` in that folder
 
 For Docker, mount the appropriate directory to `/data/collection.anki2`.
 
