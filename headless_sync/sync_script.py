@@ -106,7 +106,7 @@ def synchronize_and_sync(
 def main():
     """Main entry point for headless synchronization."""
     # Get configuration from environment variables
-    collection_path = "/data/collection.anki2"
+    collection_path = os.getenv("ANKI_COLLECTION_PATH", "/data/collection.anki2")
     anki_username = os.getenv("ANKI_USERNAME")
     anki_password = os.getenv("ANKI_PASSWORD")
 
