@@ -11,10 +11,6 @@ services:
       - ANKI_USERNAME=${ANKI_USERNAME}
       - ANKI_PASSWORD=${ANKI_PASSWORD}
 
-      # Collection path (Linux default)
-      # This should point to your Anki collection file
-      - ANKI_COLLECTION_PATH=/data/collection.anki2
-
       # Optional: Custom API endpoint
       # Defaults to http://backend.home-lab.com if not set
       - API_BASE_URL=${API_BASE_URL:-http://backend.home-lab.com}

@@ -12,17 +12,16 @@ WORKDIR /app
 # Copy core library
 COPY anki_sync_core /app/anki_sync_core
 
-# Copy headless script
+# Copy headless script and startup script
 COPY headless_sync/sync_script.py /app/
-RUN chmod +x /app/sync_script.py
+COPY headless_sync/startup.sh /app/
+RUN chmod +x /app/sync_script.py /app/startup.sh
 
 # Install Anki and requests
 RUN pip install --no-cache-dir anki requests
 
 # Setup cron schedule (every minute)
-# Format: minute hour day month day-of-week
-# * * * * * means every minute
-RUN echo "* * * * * root /usr/local/bin/python3 /app/sync_script.py >> /var/log/anki.log 2>&1" > /etc/cron.d/anki-scheduler
+RUN echo "* * * * * env ANKI_USERNAME=\$ANKI_USERNAME ANKI_PASSWORD=\$ANKI_PASSWORD API_BASE_URL=\$API_BASE_URL SCHEDULE=\$SCHEDULE /usr/local/bin/python3 /app/sync_script.py >> /var/log/anki.log 2>&1" > /etc/cron.d/anki-scheduler
 RUN chmod 0644 /etc/cron.d/anki-scheduler
 RUN crontab /etc/cron.d/anki-scheduler
 
@@ -30,11 +29,10 @@ RUN crontab /etc/cron.d/anki-scheduler
 RUN mkdir -p /var/log
 
 # Environment variables (can be overridden at runtime)
-ENV ANKI_COLLECTION_PATH=""
 ENV ANKI_USERNAME=""
 ENV ANKI_PASSWORD=""
 ENV API_BASE_URL=""
 ENV SCHEDULE="0 */6 * * *"
 
-# Run cron in foreground
-CMD ["cron", "-f"]
+# Run startup script
+CMD ["./startup.sh"]
