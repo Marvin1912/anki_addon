@@ -5,8 +5,8 @@ set -eu
 cat > /etc/cron.d/anki-scheduler <<EOF
 * * * * * ANKI_USERNAME="$ANKI_USERNAME" ANKI_PASSWORD="$ANKI_PASSWORD" API_BASE_URL="$API_BASE_URL" SCHEDULE="$SCHEDULE" /usr/local/bin/python3 /app/sync_script.py >> /var/log/anki.log 2>&1
 EOF
-RUN chmod 0644 /etc/cron.d/anki-scheduler
-RUN crontab /etc/cron.d/anki-scheduler
+chmod 0644 /etc/cron.d/anki-scheduler
+crontab /etc/cron.d/anki-scheduler
 
 # Run sync script at startup
 python3 /app/sync_script.py

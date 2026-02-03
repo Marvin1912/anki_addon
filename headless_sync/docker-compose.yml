@@ -28,7 +28,7 @@ services:
     volumes:
       # Mount Anki data directory
       # This should contain your collection.anki2 file
-      - ./anki-data:/data
+      - /home/marvin/anki-data:/data
 
       # Mount logs for monitoring
       - ./logs:/var/log
