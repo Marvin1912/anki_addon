@@ -31,7 +31,7 @@ services:
       - /home/marvin/anki-data:/data
 
       # Mount logs for monitoring
-      - ./logs:/var/log
+      - /home/marvin/anki-data/logs:/var/log
     restart: unless-stopped
 
     # Logging configuration
