@@ -11,7 +11,7 @@ from aqt import mw
 from aqt.operations import CollectionOp
 from aqt.qt import QAction
 
-from anki_sync_core import (
+from .anki_sync_core import (
     FileDeckImporter,
     FileImportError,
     default_config,
