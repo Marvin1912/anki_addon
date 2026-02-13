@@ -17,17 +17,24 @@ A powerful, modular system for synchronizing flashcards between Anki and externa
 ## Architecture
 
 ```
-anki_addon/
-├── anki_sync_core/              # Shared core library (no GUI dependencies)
-│   ├── config.py                # Unified configuration management
-│   ├── models.py                # Data models (FlashCard, CardResult)
-│   ├── api_client.py            # Vocabulary API client
-│   ├── anki_manager.py          # Anki collection operations
-│   └── synchronizer.py          # Core synchronization logic
-│
-├── anki_addon/                  # Anki GUI addon (uses core library)
-│   ├── __init__.py              # Addon initialization and menu setup
-│   └── ui_components.py         # GUI dialogs and components
+anki_addon_server/               # Standalone server-sync addon
+├── __init__.py                  # Addon initialization and menu setup
+├── ui_components.py             # GUI dialogs and components
+└── anki_sync_core/              # Bundled core logic (duplicated for this addon)
+    ├── config.py
+    ├── models.py
+    ├── api_client.py
+    ├── anki_manager.py
+    └── synchronizer.py
+
+anki_addon_file/                 # Standalone file-import addon
+├── __init__.py                  # Addon initialization and menu setup
+├── ui_components.py             # GUI dialogs and components
+└── anki_sync_core/              # Bundled core logic (duplicated for this addon)
+    ├── config.py
+    ├── models.py
+    ├── anki_manager.py
+    └── file_importer.py
 │
 ├── headless_sync/               # Headless Docker sync (uses core library)
 │   ├── sync_script.py           # Headless synchronization script
@@ -123,6 +130,9 @@ Configuration can be set via:
 - `ANKI_FIELD_FRONT`: Front field name (default: "Vorderseite")
 - `ANKI_FIELD_BACK`: Back field name (default: "Rückseite")
 - `ANKI_FIELD_DESCRIPTION`: Description field name (default: "Description")
+- `ANKI_IMPORT_FILE_PATH`: Path to the newline-delimited JSON import file
+- `ANKI_IMPORT_DECK_FORWARD_NAME`: Forward deck name (default: "Language A->B")
+- `ANKI_IMPORT_DECK_REVERSE_NAME`: Reverse deck name (default: "Language B->A")
 
 ## Usage
 
@@ -130,11 +140,13 @@ Configuration can be set via:
 
 1. Open Anki
 2. Go to `Tools` menu
-3. Click on "Import cards from server"
-4. The addon will:
-   - Connect to the configured Vocabulary API
-   - Fetch updated flashcards
-   - Create new cards or update existing ones
+3. Install one addon at a time (either `anki_addon_server/` or `anki_addon_file/`).
+4. Server addon: click on "Import cards from server" to sync updated cards from the API.
+5. File addon: click on "Import cards from file" to import from a local file.
+6. The file import flow will:
+   - Read the configured import file
+   - Show a deck selection dialog with counts for forward and reverse decks
+   - Create new cards in the selected decks
    - Show a results dialog with processed cards
 
 ### Headless Sync Usage
