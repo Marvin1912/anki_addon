@@ -7,11 +7,16 @@ anki_sync_core library for all business logic.
 """
 
 import logging
+
 from aqt import mw
 from aqt.operations import CollectionOp
 from aqt.qt import QAction
 
-from anki_sync_core import FlashcardSynchronizer, VocabularyAPIError, default_config
+from .anki_sync_core import (
+    FlashcardSynchronizer,
+    VocabularyAPIError,
+    default_config,
+)
 from anki_sync_core.models import CardResult
 from .ui_components import show_changed_cards_dialog, show_error_dialog
 

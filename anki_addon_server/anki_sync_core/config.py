@@ -37,6 +37,7 @@ class SyncConfig:
     # Collection Configuration (for headless sync)
     collection_path: Optional[str] = None
 
+
     # Schedule Configuration (for headless sync)
     schedule: str = "0 */6 * * *"
 
