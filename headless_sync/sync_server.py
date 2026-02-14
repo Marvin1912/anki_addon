@@ -17,6 +17,15 @@ logger = logging.getLogger(__name__)
 
 
 class SyncRequestHandler(BaseHTTPRequestHandler):
+    _CORS_ALLOWED_METHODS = "POST, OPTIONS"
+    _CORS_ALLOWED_HEADERS = "Content-Type"
+    _CORS_ALLOWED_ORIGIN = "*"
+
+    def do_OPTIONS(self) -> None:  # noqa: N802 - required by BaseHTTPRequestHandler
+        self.send_response(HTTPStatus.NO_CONTENT)
+        self._send_cors_headers()
+        self.end_headers()
+
     def do_POST(self) -> None:  # noqa: N802 - required by BaseHTTPRequestHandler
         if self.path != "/sync":
             self._send_json(
@@ -41,9 +50,15 @@ class SyncRequestHandler(BaseHTTPRequestHandler):
     def log_message(self, format: str, *args) -> None:  # noqa: A002
         logger.info("HTTP %s - %s", self.address_string(), format % args)
 
+    def _send_cors_headers(self) -> None:
+        self.send_header("Access-Control-Allow-Origin", self._CORS_ALLOWED_ORIGIN)
+        self.send_header("Access-Control-Allow-Methods", self._CORS_ALLOWED_METHODS)
+        self.send_header("Access-Control-Allow-Headers", self._CORS_ALLOWED_HEADERS)
+
     def _send_json(self, status: HTTPStatus, payload: dict) -> None:
         body = json.dumps(payload).encode("utf-8")
         self.send_response(status)
+        self._send_cors_headers()
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
