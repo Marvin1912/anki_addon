@@ -216,6 +216,7 @@ def show_deck_import_selection_dialog(
     forward_count: int,
     reverse_count: int,
 ) -> Optional[tuple[bool, bool]]:
+    logger = logging.getLogger(__name__)
     dialog = DeckImportSelectionDialog(
         forward_deck_name,
         reverse_deck_name,
@@ -223,7 +224,14 @@ def show_deck_import_selection_dialog(
         reverse_count,
         mw,
     )
-    if dialog.exec() == QDialog.Accepted:
+    result = dialog.exec()
+    logger.info("Deck import selection dialog closed with result=%s", result)
+    accepted_code = (
+        QDialog.Accepted
+        if hasattr(QDialog, "Accepted")
+        else QDialog.DialogCode.Accepted
+    )
+    if result == accepted_code:
         return dialog.get_selection()
     return None
 
