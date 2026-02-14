@@ -10,12 +10,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # Copy core library
-COPY anki_sync_core /app/anki_sync_core
+COPY anki_addon_server/anki_sync_core /app/anki_sync_core
 
-# Copy headless script and startup script
+# Copy headless scripts and startup script
 COPY headless_sync/sync_script.py /app/
+COPY headless_sync/sync_server.py /app/
 COPY headless_sync/startup.sh /app/
-RUN chmod +x /app/sync_script.py /app/startup.sh
+RUN chmod +x /app/sync_script.py /app/sync_server.py /app/startup.sh
 
 # Install Anki and requests
 RUN pip install --no-cache-dir anki requests
@@ -28,6 +29,9 @@ ENV ANKI_USERNAME=""
 ENV ANKI_PASSWORD=""
 ENV API_BASE_URL=""
 ENV SCHEDULE="0 */6 * * *"
+
+# Manual sync HTTP server
+EXPOSE 8000
 
 # Run startup script
 CMD ["./startup.sh"]

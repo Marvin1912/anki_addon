@@ -9,21 +9,21 @@ on a scheduled basis.
 This script uses the shared anki_sync_core library for all
 business logic, with no GUI dependencies.
 """
-
+import logging
 import os
 import sys
-import logging
 from pathlib import Path
-
-# Add project root to path to import anki_addon_server packages
-script_dir = Path(__file__).parent
-project_root = script_dir.parent
-sys.path.insert(0, str(project_root))
+from typing import Optional, Tuple
 
 from anki.collection import Collection as aopen
 
+# Add anki_sync_core to path without importing GUI addon package
+script_dir = Path(__file__).parent
+project_root = script_dir.parent
+sys.path.insert(0, str(project_root / "anki_addon_server"))
+
 # Import core library modules
-from anki_addon_server.anki_sync_core import (
+from anki_sync_core import (
     FlashcardSynchronizer,
     VocabularyAPIError,
     SyncConfig,
@@ -38,10 +38,10 @@ logger = logging.getLogger(__name__)
 
 
 def synchronize_and_sync(
-    collection_path: str,
-    anki_username: str,
-    anki_password: str,
-    config: SyncConfig = None
+        collection_path: str,
+        anki_username: str,
+        anki_password: str,
+        config: SyncConfig = None
 ) -> bool:
     """
     Synchronize flashcards from API and sync with AnkiWeb.
@@ -106,8 +106,8 @@ def synchronize_and_sync(
         return False
 
 
-def main():
-    """Main entry point for headless synchronization."""
+def run_sync_once() -> Tuple[bool, Optional[str]]:
+    """Run a single synchronization using environment configuration."""
     # Get configuration from environment variables
     collection_path = os.getenv("ANKI_COLLECTION_PATH", "/data/collection.anki2")
     anki_username = os.getenv("ANKI_USERNAME")
@@ -118,11 +118,12 @@ def main():
 
     # Validate required configuration
     if not all([anki_username, anki_password]):
-        logger.error(
+        message = (
             "Missing required environment variables. "
             "Please set ANKI_USERNAME and ANKI_PASSWORD."
         )
-        sys.exit(1)
+        logger.error(message)
+        return False, message
 
     # Log configuration (without sensitive data)
     logger.info(f"Collection path: {collection_path}")
@@ -139,10 +140,17 @@ def main():
 
     if success:
         logger.info("Synchronization completed successfully")
-        sys.exit(0)
-    else:
-        logger.error("Synchronization failed")
-        sys.exit(1)
+        return True, None
+
+    message = "Synchronization failed"
+    logger.error(message)
+    return False, message
+
+
+def main():
+    """Main entry point for headless synchronization."""
+    success, _error = run_sync_once()
+    sys.exit(0 if success else 1)
 
 
 if __name__ == "__main__":
