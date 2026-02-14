@@ -27,7 +27,7 @@ class SyncConfig:
     anki_field_description: str = "Description"
 
     # File Import Configuration (for GUI addon)
-    import_file_path: Optional[str] = None
+    import_file_path: Optional[str] = "/home/marvin/Downloads/vocabulary_20260213_185023.jsonl"
     import_deck_forward_name: str = "Language A->B"
     import_deck_reverse_name: str = "Language B->A"
 
@@ -43,11 +43,6 @@ class SyncConfig:
 
     # HTTP Headers
     json_headers: dict = field(default_factory=lambda: {'content-type': 'application/json; charset=utf-8'})
-
-    def __post_init__(self):
-        """Compute derived values after initialization."""
-        if self.flashcards_endpoint is None:
-            self.flashcards_endpoint = f"{self.api_base_url}/vocabulary/flashcards"
 
     @classmethod
     def from_env(cls) -> 'SyncConfig':

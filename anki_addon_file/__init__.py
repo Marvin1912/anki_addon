@@ -120,19 +120,6 @@ def create_import_operation() -> None:
         logger.error(f"Failed to create import operation: {e}")
 
 
-def create_import_operation() -> None:
-    """Create and start the file import operation."""
-    try:
-        operation = CollectionOp(parent=mw, op=process_file_import)
-        operation.success(on_synchronization_success)
-        operation.failure(on_synchronization_failure)
-        operation.run_in_background()
-        logger.info("Started file import operation")
-
-    except Exception as e:
-        logger.error(f"Failed to create import operation: {e}")
-
-
 def setup_addon() -> None:
     """Set up the addon by adding menu action."""
     try:
