@@ -19,6 +19,7 @@ from .config import SyncConfig, default_config
 from .models import FlashCard, CardResult
 from .api_client import VocabularyAPIClient, VocabularyAPIError
 from .anki_manager import AnkiCardManager
+from .file_importer import FileDeckImporter, FileImportError, ImportSummary
 from .synchronizer import FlashcardSynchronizer
 
 __all__ = [
@@ -30,6 +31,9 @@ __all__ = [
     'VocabularyAPIError',
     'AnkiCardManager',
     'FlashcardSynchronizer',
+    'FileDeckImporter',
+    'FileImportError',
+    'ImportSummary',
 ]
 
 __version__ = '1.0.0'

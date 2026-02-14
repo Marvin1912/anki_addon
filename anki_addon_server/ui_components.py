@@ -6,13 +6,13 @@ and error messages to users.
 """
 
 import logging
-from typing import List
+from typing import Optional
 
-from aqt.qt import *
 from aqt import mw
+from aqt.qt import *
 
-from anki_sync_core.config import SyncConfig
-from anki_sync_core.models import CardResult, FlashCard
+from .anki_sync_core.config import SyncConfig
+from .anki_sync_core.models import CardResult
 
 
 class ChangedCardsDialog(QDialog):
@@ -146,6 +146,86 @@ def show_changed_cards_dialog(card_result: CardResult, config: SyncConfig = None
     """
     dialog = ChangedCardsDialog(card_result, config, mw)
     dialog.exec()
+
+
+class DeckImportSelectionDialog(QDialog):
+    """
+    Dialog for selecting which decks to import from a file.
+    """
+
+    def __init__(self, forward_deck_name: str, reverse_deck_name: str,
+                 forward_count: int, reverse_count: int,
+                 parent=None):
+        super().__init__(parent or mw)
+        self.forward_deck_name = forward_deck_name
+        self.reverse_deck_name = reverse_deck_name
+        self.forward_count = forward_count
+        self.reverse_count = reverse_count
+
+        self.forward_checkbox: Optional[QCheckBox] = None
+        self.reverse_checkbox: Optional[QCheckBox] = None
+
+        self.setup_ui()
+
+    def setup_ui(self) -> None:
+        self.setWindowTitle("Import Decks")
+        self.setMinimumSize(420, 220)
+
+        layout = QVBoxLayout(self)
+
+        info_label = QLabel("Select the decks to import from the file:")
+        info_label.setWordWrap(True)
+        layout.addWidget(info_label)
+
+        self.forward_checkbox = QCheckBox(
+            f"{self.forward_deck_name} ({self.forward_count} cards)"
+        )
+        self.forward_checkbox.setChecked(True)
+        layout.addWidget(self.forward_checkbox)
+
+        self.reverse_checkbox = QCheckBox(
+            f"{self.reverse_deck_name} ({self.reverse_count} cards)"
+        )
+        self.reverse_checkbox.setChecked(True)
+        layout.addWidget(self.reverse_checkbox)
+
+        button_layout = QHBoxLayout()
+        button_layout.addStretch()
+
+        cancel_button = QPushButton("Cancel")
+        cancel_button.clicked.connect(self.reject)
+        button_layout.addWidget(cancel_button)
+
+        import_button = QPushButton("Import")
+        import_button.clicked.connect(self.accept)
+        button_layout.addWidget(import_button)
+
+        layout.addLayout(button_layout)
+        self.setLayout(layout)
+
+    def get_selection(self) -> tuple[bool, bool]:
+        return (
+            bool(self.forward_checkbox and self.forward_checkbox.isChecked()),
+            bool(self.reverse_checkbox and self.reverse_checkbox.isChecked()),
+        )
+
+
+def show_deck_import_selection_dialog(
+    forward_deck_name: str,
+    reverse_deck_name: str,
+    forward_count: int,
+    reverse_count: int,
+) -> Optional[tuple[bool, bool]]:
+    dialog = DeckImportSelectionDialog(
+        forward_deck_name,
+        reverse_deck_name,
+        forward_count,
+        reverse_count,
+        mw,
+    )
+    if dialog.exec() == QDialog.Accepted:
+        return dialog.get_selection()
+    return None
 
 
 def show_error_dialog(error_message: str, config: SyncConfig = None) -> None:

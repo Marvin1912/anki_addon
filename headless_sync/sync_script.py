@@ -15,16 +15,19 @@ import sys
 import logging
 from pathlib import Path
 
-# Add parent directory to path to import anki_sync_core
+# Add project root to path to import anki_addon_server packages
 script_dir = Path(__file__).parent
 project_root = script_dir.parent
 sys.path.insert(0, str(project_root))
 
 from anki.collection import Collection as aopen
-from anki.sync import SyncAuth
 
 # Import core library modules
-from anki_sync_core import FlashcardSynchronizer, VocabularyAPIError, SyncConfig
+from anki_addon_server.anki_sync_core import (
+    FlashcardSynchronizer,
+    VocabularyAPIError,
+    SyncConfig,
+)
 
 # Configure logging
 logging.basicConfig(
