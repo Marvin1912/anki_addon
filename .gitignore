@@ -36,3 +36,4 @@ app/**
 *.bkp
 
 app/google/credentials.json
+**/__pycache__/**

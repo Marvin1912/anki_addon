@@ -1,6 +1,6 @@
 # Headless Anki Vocabulary Synchronizer
 
-This project provides a headless Docker container for running the Anki Vocabulary Sync on a scheduled basis with automatic AnkiWeb sync.
+This project provides a headless Docker container for running the Anki Vocabulary Sync on a scheduled basis with automatic AnkiWeb sync, plus an optional manual HTTP trigger.
 
 ## Overview
 
@@ -10,6 +10,7 @@ This implementation uses the shared `anki_sync_core` library to synchronize flas
 2. **Updates Anki collection** with new/modified cards
 3. **Syncs with AnkiWeb** automatically
 4. **Runs on schedule** via cron (default: every 6 hours)
+5. **Manual trigger** via HTTP `POST /sync`
 
 ## Architecture
 
@@ -142,6 +143,26 @@ docker logs -f anki-vocabulary-sync
 
 # Application logs
 tail -f headless_sync/logs/anki.log
+
+### Trigger Manual Sync
+
+The container exposes a simple HTTP endpoint for manual runs.
+
+```bash
+curl -X POST http://localhost:8000/sync
+```
+
+Successful response:
+
+```json
+{"status":"ok"}
+```
+
+Error response:
+
+```json
+{"status":"error","message":"..."}
+```
 ```
 
 ### Check Synchronization Status

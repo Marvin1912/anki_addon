@@ -25,6 +25,9 @@ services:
       #   - "*/15 * * * *" = Every 15 minutes
       - SCHEDULE=${SCHEDULE:-0 */6 * * *}
 
+    ports:
+      - "8000:8000"
+
     volumes:
       # Mount Anki data directory
       # This should contain your collection.anki2 file

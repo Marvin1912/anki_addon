@@ -11,5 +11,8 @@ crontab /etc/cron.d/anki-scheduler
 # Run sync script at startup
 python3 /app/sync_script.py
 
+# Start manual sync HTTP server in background
+python3 /app/sync_server.py >> /var/log/anki_server.log 2>&1 &
+
 # Start cron in foreground
 cron -f
