@@ -6,6 +6,7 @@ JSON file into Anki. It uses its bundled core library for all business logic.
 """
 
 import logging
+import threading
 
 from aqt import mw
 from aqt.operations import CollectionOp
@@ -82,7 +83,13 @@ def on_import_success(card_result: CardResult) -> None:
         card_result: Result containing information about synchronized cards
     """
     try:
-        show_changed_cards_dialog(card_result, default_config)
+        logger.info(
+            "Scheduling results dialog on main thread (current=%s)",
+            threading.current_thread().name,
+        )
+        mw.taskman.run_on_main(
+            lambda: show_changed_cards_dialog(card_result, default_config)
+        )
     except Exception as e:
         logger.error(f"Failed to show results dialog: {e}")
 
@@ -102,7 +109,13 @@ def on_import_failure(error) -> None:
         error_message = "An unknown error occurred during import."
 
     try:
-        show_error_dialog(error_message, default_config)
+        logger.info(
+            "Scheduling error dialog on main thread (current=%s)",
+            threading.current_thread().name,
+        )
+        mw.taskman.run_on_main(
+            lambda: show_error_dialog(error_message, default_config)
+        )
     except Exception as dialog_error:
         logger.error(f"Failed to show error dialog: {dialog_error}")
 
