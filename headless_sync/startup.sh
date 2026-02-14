@@ -3,7 +3,7 @@ set -eu
 
 # Setup cron schedule (every minute)
 cat > /etc/cron.d/anki-scheduler <<EOF
-* * * * * ANKI_USERNAME="$ANKI_USERNAME" ANKI_PASSWORD="$ANKI_PASSWORD" API_BASE_URL="$API_BASE_URL" SCHEDULE="$SCHEDULE" /usr/local/bin/python3 /app/sync_script.py >> /var/log/anki.log 2>&1
+* * * * * ANKI_USERNAME="$ANKI_USERNAME" ANKI_PASSWORD="$ANKI_PASSWORD" API_BASE_URL="$API_BASE_URL" SCHEDULE="$SCHEDULE" /usr/local/bin/python3 /app/sync_script.py
 EOF
 chmod 0644 /etc/cron.d/anki-scheduler
 crontab /etc/cron.d/anki-scheduler
@@ -12,7 +12,7 @@ crontab /etc/cron.d/anki-scheduler
 python3 /app/sync_script.py
 
 # Start manual sync HTTP server in background
-python3 /app/sync_server.py >> /var/log/anki_server.log 2>&1 &
+python3 /app/sync_server.py &
 
 # Start cron in foreground
 cron -f
