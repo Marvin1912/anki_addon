@@ -26,9 +26,7 @@ class SyncRequestHandler(BaseHTTPRequestHandler):
             return
 
         logger.info("Manual sync trigger received")
-        logger.debug("Starting sync process...")
         success, error_message = run_sync_once()
-        logger.debug("Sync process finished.")
 
         if success:
             logger.info("Manual sync completed successfully")
