@@ -50,12 +50,27 @@ def process_file_import(collection) -> CardResult:
         cards = importer.parse_file(default_config.import_file_path)
         summary = importer.get_summary(cards)
 
-        selection = show_deck_import_selection_dialog(
-            default_config.import_deck_forward_name,
-            default_config.import_deck_reverse_name,
-            summary.forward_count,
-            summary.reverse_count,
+        selection_event = threading.Event()
+        selection_container = {"selection": None}
+
+        def prompt_selection() -> None:
+            try:
+                selection_container["selection"] = show_deck_import_selection_dialog(
+                    default_config.import_deck_forward_name,
+                    default_config.import_deck_reverse_name,
+                    summary.forward_count,
+                    summary.reverse_count,
+                )
+            finally:
+                selection_event.set()
+
+        logger.info(
+            "Scheduling deck selection dialog on main thread (current=%s)",
+            threading.current_thread().name,
         )
+        mw.taskman.run_on_main(prompt_selection)
+        selection_event.wait()
+        selection = selection_container["selection"]
 
         if selection is None:
             logger.info("Import canceled by user.")
