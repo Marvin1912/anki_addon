@@ -29,7 +29,10 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def process_file_import(collection, selection: tuple[bool, bool] | None) -> CardResult:
+from typing import Optional, Tuple
+
+
+def process_file_import(collection, selection: Optional[Tuple[bool, bool]]) -> CardResult:
     """
     Process flashcard import from a newline-delimited JSON file.
 
