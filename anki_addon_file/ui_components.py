@@ -153,9 +153,14 @@ class DeckImportSelectionDialog(QDialog):
     Dialog for selecting which decks to import from a file.
     """
 
-    def __init__(self, forward_deck_name: str, reverse_deck_name: str,
-                 forward_count: int, reverse_count: int,
-                 parent=None):
+    def __init__(
+        self,
+        forward_deck_name: str,
+        reverse_deck_name: str,
+        forward_count: int,
+        reverse_count: int,
+        parent=None,
+    ):
         super().__init__(parent or mw)
         self.forward_deck_name = forward_deck_name
         self.reverse_deck_name = reverse_deck_name
@@ -164,6 +169,8 @@ class DeckImportSelectionDialog(QDialog):
 
         self.forward_checkbox: Optional[QCheckBox] = None
         self.reverse_checkbox: Optional[QCheckBox] = None
+        self.forward_name_input: Optional[QLineEdit] = None
+        self.reverse_name_input: Optional[QLineEdit] = None
 
         self.setup_ui()
 
@@ -177,17 +184,40 @@ class DeckImportSelectionDialog(QDialog):
         info_label.setWordWrap(True)
         layout.addWidget(info_label)
 
+        forward_row = QHBoxLayout()
+        forward_label = QLabel("Forward deck name:")
+        forward_row.addWidget(forward_label)
+        self.forward_name_input = QLineEdit(self.forward_deck_name)
+        forward_row.addWidget(self.forward_name_input)
+        layout.addLayout(forward_row)
+
         self.forward_checkbox = QCheckBox(
             f"{self.forward_deck_name} ({self.forward_count} cards)"
         )
         self.forward_checkbox.setChecked(True)
         layout.addWidget(self.forward_checkbox)
 
+        reverse_row = QHBoxLayout()
+        reverse_label = QLabel("Reverse deck name:")
+        reverse_row.addWidget(reverse_label)
+        self.reverse_name_input = QLineEdit(self.reverse_deck_name)
+        reverse_row.addWidget(self.reverse_name_input)
+        layout.addLayout(reverse_row)
+
         self.reverse_checkbox = QCheckBox(
             f"{self.reverse_deck_name} ({self.reverse_count} cards)"
         )
         self.reverse_checkbox.setChecked(True)
         layout.addWidget(self.reverse_checkbox)
+
+        if self.forward_name_input:
+            self.forward_name_input.textChanged.connect(
+                self._update_forward_checkbox_text
+            )
+        if self.reverse_name_input:
+            self.reverse_name_input.textChanged.connect(
+                self._update_reverse_checkbox_text
+            )
 
         button_layout = QHBoxLayout()
         button_layout.addStretch()
@@ -203,10 +233,38 @@ class DeckImportSelectionDialog(QDialog):
         layout.addLayout(button_layout)
         self.setLayout(layout)
 
-    def get_selection(self) -> tuple[bool, bool]:
+    def _update_forward_checkbox_text(self) -> None:
+        if self.forward_checkbox and self.forward_name_input:
+            name = self.forward_name_input.text().strip() or self.forward_deck_name
+            self.forward_checkbox.setText(f"{name} ({self.forward_count} cards)")
+
+    def _update_reverse_checkbox_text(self) -> None:
+        if self.reverse_checkbox and self.reverse_name_input:
+            name = self.reverse_name_input.text().strip() or self.reverse_deck_name
+            self.reverse_checkbox.setText(f"{name} ({self.reverse_count} cards)")
+
+    def get_selection(self) -> tuple[bool, bool, str, str]:
+        forward_selected = bool(
+            self.forward_checkbox and self.forward_checkbox.isChecked()
+        )
+        reverse_selected = bool(
+            self.reverse_checkbox and self.reverse_checkbox.isChecked()
+        )
+        forward_name = (
+            self.forward_name_input.text().strip()
+            if self.forward_name_input
+            else self.forward_deck_name
+        )
+        reverse_name = (
+            self.reverse_name_input.text().strip()
+            if self.reverse_name_input
+            else self.reverse_deck_name
+        )
         return (
-            bool(self.forward_checkbox and self.forward_checkbox.isChecked()),
-            bool(self.reverse_checkbox and self.reverse_checkbox.isChecked()),
+            forward_selected,
+            reverse_selected,
+            forward_name or self.forward_deck_name,
+            reverse_name or self.reverse_deck_name,
         )
 
 
@@ -215,7 +273,7 @@ def show_deck_import_selection_dialog(
     reverse_deck_name: str,
     forward_count: int,
     reverse_count: int,
-) -> Optional[tuple[bool, bool]]:
+) -> Optional[tuple[bool, bool, str, str]]:
     logger = logging.getLogger(__name__)
     dialog = DeckImportSelectionDialog(
         forward_deck_name,

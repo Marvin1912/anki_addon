@@ -32,7 +32,10 @@ logger = logging.getLogger(__name__)
 from typing import Optional, Tuple
 
 
-def process_file_import(collection, selection: Optional[Tuple[bool, bool]]) -> CardResult:
+def process_file_import(
+    collection,
+    selection: Optional[Tuple[bool, bool, str, str]],
+) -> CardResult:
     """
     Process flashcard import from a newline-delimited JSON file.
 
@@ -57,7 +60,9 @@ def process_file_import(collection, selection: Optional[Tuple[bool, bool]]) -> C
         cards = importer.parse_file(default_config.import_file_path)
         summary = importer.get_summary(cards)
 
-        import_forward, import_reverse = selection
+        import_forward, import_reverse, forward_name, reverse_name = selection
+        default_config.import_deck_forward_name = forward_name
+        default_config.import_deck_reverse_name = reverse_name
         if not import_forward and not import_reverse:
             logger.info("No decks selected for import.")
             return CardResult(changes=None, changed_cards=[])
