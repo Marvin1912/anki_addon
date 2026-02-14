@@ -55,6 +55,7 @@ def synchronize_and_sync(
     Returns:
         True if successful, False otherwise
     """
+    logger.info("Sync job starting")
     try:
         # Open collection
         logger.info(f"Opening collection: {collection_path}")
@@ -104,10 +105,13 @@ def synchronize_and_sync(
     except Exception as e:
         logger.error(f"Unexpected error: {e}", exc_info=True)
         return False
+    finally:
+        logger.info("Sync job finished")
 
 
 def run_sync_once() -> Tuple[bool, Optional[str]]:
     """Run a single synchronization using environment configuration."""
+    logger.info("Run sync once starting")
     # Get configuration from environment variables
     collection_path = os.getenv("ANKI_COLLECTION_PATH", "/data/collection.anki2")
     anki_username = os.getenv("ANKI_USERNAME")
@@ -149,7 +153,9 @@ def run_sync_once() -> Tuple[bool, Optional[str]]:
 
 def main():
     """Main entry point for headless synchronization."""
+    logger.info("Headless sync script starting")
     success, _error = run_sync_once()
+    logger.info("Headless sync script exiting")
     sys.exit(0 if success else 1)
 
 

@@ -26,9 +26,12 @@ class SyncRequestHandler(BaseHTTPRequestHandler):
             return
 
         logger.info("Manual sync trigger received")
+        logger.debug("Starting sync process...")
         success, error_message = run_sync_once()
+        logger.debug("Sync process finished.")
 
         if success:
+            logger.info("Manual sync completed successfully")
             self._send_json(HTTPStatus.OK, {"status": "ok"})
             return
 
@@ -52,6 +55,7 @@ class SyncRequestHandler(BaseHTTPRequestHandler):
 def main() -> None:
     server = ThreadingHTTPServer(("0.0.0.0", 8000), SyncRequestHandler)
     logger.info("Manual sync server listening on 0.0.0.0:8000")
+    logger.info("Manual sync server starting")
     server.serve_forever()
 
 
