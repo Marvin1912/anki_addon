@@ -16,7 +16,7 @@ from .anki_sync_core import (
     FileImportError,
     default_config,
 )
-from anki_sync_core.models import CardResult
+from .anki_sync_core.models import CardResult
 from .ui_components import (
     show_changed_cards_dialog,
     show_deck_import_selection_dialog,

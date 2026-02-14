@@ -17,7 +17,7 @@ from .anki_sync_core import (
     VocabularyAPIError,
     default_config,
 )
-from anki_sync_core.models import CardResult
+from .anki_sync_core.models import CardResult
 from .ui_components import show_changed_cards_dialog, show_error_dialog
 
 # Configure logging for the addon

@@ -6,13 +6,13 @@ and error messages to users.
 """
 
 import logging
-from typing import Callable, List, Optional
+from typing import Optional
 
-from aqt.qt import *
 from aqt import mw
+from aqt.qt import *
 
-from anki_sync_core.config import SyncConfig
-from anki_sync_core.models import CardResult, FlashCard
+from .anki_sync_core.config import SyncConfig
+from .anki_sync_core.models import CardResult
 
 
 class ChangedCardsDialog(QDialog):
