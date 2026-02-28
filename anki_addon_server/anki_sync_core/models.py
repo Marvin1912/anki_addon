@@ -29,6 +29,7 @@ class FlashCard:
         description: Optional additional description for the card
     """
     deck: str
+    deckId: int
     front: str
     back: str
     updated: bool
