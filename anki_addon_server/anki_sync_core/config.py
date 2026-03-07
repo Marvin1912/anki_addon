@@ -23,6 +23,7 @@ class SyncConfig:
     # API Configuration
     api_base_url: str = "http://backend.home-lab.com"
     flashcards_endpoint: Optional[str] = None  # Computed from api_base_url
+    sync_runs_endpoint: Optional[str] = None  # Computed from api_base_url
 
     # Anki Configuration
     default_model_name: str = "Einfach"
@@ -58,6 +59,8 @@ class SyncConfig:
         """Compute derived values after initialization."""
         if self.flashcards_endpoint is None:
             self.flashcards_endpoint = f"{self.api_base_url}/vocabulary/flashcards"
+        if self.sync_runs_endpoint is None:
+            self.sync_runs_endpoint = f"{self.api_base_url}/vocabulary/sync-runs"
 
     @classmethod
     def from_env(cls) -> 'SyncConfig':
@@ -85,6 +88,15 @@ class SyncConfig:
             Full URL for the flashcards endpoint
         """
         return self.flashcards_endpoint
+
+    def get_sync_runs_endpoint(self) -> str:
+        """
+        Get the full sync runs endpoint URL.
+
+        Returns:
+            Full URL for the sync runs endpoint
+        """
+        return self.sync_runs_endpoint
 
     def get_json_headers(self) -> dict:
         """

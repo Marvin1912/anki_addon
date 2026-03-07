@@ -6,6 +6,7 @@ Anki operations and API communication.
 """
 
 import logging
+import time
 from typing import List
 
 from anki.collection import Collection, OpChanges
@@ -14,6 +15,7 @@ from .anki_manager import AnkiCardManager
 from .api_client import VocabularyAPIClient, VocabularyAPIError
 from .config import SyncConfig
 from .models import FlashCard, CardResult
+from .sync_tracking_client import SyncTrackingClient
 
 
 class FlashcardSynchronizer:
@@ -39,6 +41,7 @@ class FlashcardSynchronizer:
         self.config = config or SyncConfig()
         self.anki_manager = AnkiCardManager(collection, self.config)
         self.api_client = VocabularyAPIClient(self.config)
+        self.tracking_client = SyncTrackingClient(self.config)
         self.logger = logging.getLogger(__name__)
 
     def synchronize_updated_cards(self) -> CardResult:
@@ -57,6 +60,7 @@ class FlashcardSynchronizer:
         Raises:
             VocabularyAPIError: If API communication fails
         """
+        started_at = time.monotonic()
         try:
             updated_cards = self.api_client.fetch_updated_flashcards()
             changed_cards = []
@@ -92,7 +96,7 @@ class FlashcardSynchronizer:
                     # Continue with other cards even if one fails
                     continue
 
-            return CardResult(
+            result = CardResult(
                 changes=OpChanges(
                     deck=True,
                     note=True,
@@ -102,10 +106,16 @@ class FlashcardSynchronizer:
                 ),
                 changed_cards=changed_cards
             )
+            duration_ms = int((time.monotonic() - started_at) * 1000)
+            self.tracking_client.report_success(duration_ms, len(changed_cards))
+            return result
 
-        except VocabularyAPIError:
-            # Re-raise API errors as they should be handled by the caller
+        except VocabularyAPIError as e:
+            duration_ms = int((time.monotonic() - started_at) * 1000)
+            self.tracking_client.report_failure(duration_ms, str(e))
             raise
         except Exception as e:
             self.logger.error(f"Unexpected error during synchronization: {e}")
+            duration_ms = int((time.monotonic() - started_at) * 1000)
+            self.tracking_client.report_failure(duration_ms, str(e))
             raise VocabularyAPIError(f"Synchronization failed: {e}")

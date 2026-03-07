@@ -21,6 +21,7 @@ from .api_client import VocabularyAPIClient, VocabularyAPIError
 from .anki_manager import AnkiCardManager
 from .file_importer import FileDeckImporter, FileImportError, ImportSummary
 from .synchronizer import FlashcardSynchronizer
+from .sync_tracking_client import SyncTrackingClient
 
 __all__ = [
     'SyncConfig',
@@ -34,6 +35,7 @@ __all__ = [
     'FileDeckImporter',
     'FileImportError',
     'ImportSummary',
+    'SyncTrackingClient',
 ]
 
 __version__ = '1.0.0'
